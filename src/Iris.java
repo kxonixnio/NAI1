@@ -9,8 +9,8 @@ public class Iris {
         this.decisionAttribute = decisionAttribute;
     }
 
-    public static List<Iris> getTrainingList(List<String> list) {
-        List<Iris> trainingList = new ArrayList<>();
+    public static List<Iris> getIrisList(List<String> list) {
+        List<Iris> outputList = new ArrayList<>();
 
         for(String line : list) {
             List<Double> attributes = new ArrayList<>();
@@ -24,13 +24,14 @@ public class Iris {
                     attributes.add(Double.parseDouble(doubleScanner.next()));
                 }
             } catch (NumberFormatException e) {
+                line = line.trim();
                 decisionAtt = line.substring(line.lastIndexOf(" ") + 1);
                 decisionAtt = decisionAtt.replaceAll("\\s+",""); //remove all whitespaces and non-visible characters
             }
 
-            trainingList.add(new Iris(attributes, decisionAtt));
+            outputList.add(new Iris(attributes, decisionAtt));
         }
-        return trainingList;
+        return outputList;
     }
 
     @Override
