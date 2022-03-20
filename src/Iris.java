@@ -34,8 +34,16 @@ public class Iris {
         return outputList;
     }
 
+    public List<Double> getConditionalAttributes() {
+        return conditionalAttributes;
+    }
+
+    public String getDecisionAttribute() {
+        return decisionAttribute;
+    }
+
     @Override
     public String toString() {
-        return "Iris: " + conditionalAttributes + " " + decisionAttribute;
+        return decisionAttribute;
     }
 }
