@@ -1,8 +1,9 @@
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Classifier {
+
+    private static int COUNTER_OF_PROPER_DIAGNOSED_IRISES = 0;
 
     public static void classifyTestCollection(List<Iris> irisTrainingList, List<Iris> irisTestList, int k) {
         for(Iris irisTest : irisTestList) { //Iterate through every test Iris...
@@ -11,13 +12,35 @@ public class Classifier {
                 distancesToTrainingIrises.put(irisTraining, getEuclideanDistance(irisTest, irisTraining));
             }
 
-            System.out.println(entriesSortedByValues(distancesToTrainingIrises));
+            //Sort map of distances by value (ascending) and get first k elements (== the smallest distances)
+            List<Map.Entry<Iris, Double>> kNearestNeigbours = entriesSortedByValues(distancesToTrainingIrises).stream().limit(k).collect(Collectors.toList());
 
-            List<?> list = entriesSortedByValues(distancesToTrainingIrises).stream().limit(k).collect(Collectors.toList());
-            System.out.println(Arrays.asList(list));
-
-            return;
+            if(isDiagnosedProperly(irisTest, kNearestNeigbours, k)) {
+                COUNTER_OF_PROPER_DIAGNOSED_IRISES++;
+            }
         }
+        System.out.println(COUNTER_OF_PROPER_DIAGNOSED_IRISES + "/" + k);
+        System.out.println(((double) COUNTER_OF_PROPER_DIAGNOSED_IRISES / (double)irisTestList.size())*100 + "%");
+    }
+
+    private static boolean isDiagnosedProperly(Iris irisTest, List<?> kNearestNeighboursList, int k) {
+
+        long counter = kNearestNeighboursList.stream().filter(nn -> nn.toString().contains(irisTest.getDecisionAttribute())).count();
+        printPrettyInfo(irisTest, kNearestNeighboursList, counter, k);
+
+        if(((double) counter / (double) k) > 0.5) {
+            return true;
+        } else {
+            return false; //if 50% is correct also return false
+        }
+    }
+
+    private static void printPrettyInfo(Iris irisTest, List<?> kNearestNeigbours, long counter, int k) {
+        System.out.println("K nearest neighbours for: " + irisTest.getDecisionAttribute() + ", " + irisTest.getConditionalAttributes());
+        for (int i = 0; i < kNearestNeigbours.size(); i++) {
+            System.out.println(kNearestNeigbours.get(i));
+        }
+        System.out.println(String.valueOf(counter) + "/" + String.valueOf(k) + "\n");
     }
 
     private static Double getEuclideanDistance(Iris testIris, Iris trainIris) {
