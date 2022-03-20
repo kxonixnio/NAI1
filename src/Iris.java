@@ -12,18 +12,18 @@ public class Iris {
     public static List<Iris> getIrisList(List<String> list) {
         List<Iris> outputList = new ArrayList<>();
 
-        for(String line : list) {
+        for(String line : list) { //for each line...
             List<Double> attributes = new ArrayList<>();
             String decisionAtt = "";
 
-            line = line.replace(',', '.');
+            line = line.replace(',', '.'); //e.g. 3,7 -> 3.7
             Scanner doubleScanner = new Scanner(line);
 
             try {
                 while (!doubleScanner.hasNextDouble()) {
-                    attributes.add(Double.parseDouble(doubleScanner.next()));
+                    attributes.add(Double.parseDouble(doubleScanner.next())); //read all numbers...
                 }
-            } catch (NumberFormatException e) {
+            } catch (NumberFormatException e) { //... if it is not a number, it is a decision attribute
                 line = line.trim();
                 decisionAtt = line.substring(line.lastIndexOf(" ") + 1);
                 decisionAtt = decisionAtt.replaceAll("\\s+",""); //remove all whitespaces and non-visible characters

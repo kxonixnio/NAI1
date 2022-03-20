@@ -13,19 +13,72 @@ public class Classifier {
             }
 
             //Sort map of distances by value (ascending) and get first k elements (== the smallest distances)
-            List<Map.Entry<Iris, Double>> kNearestNeigbours = entriesSortedByValues(distancesToTrainingIrises).stream().limit(k).collect(Collectors.toList());
+            List<Map.Entry<Iris, Double>> kNearestNeighbours = entriesSortedByValues(distancesToTrainingIrises).stream()
+                    .limit(k)
+                    .collect(Collectors.toList());
 
-            if(isDiagnosedProperly(irisTest, kNearestNeigbours, k)) {
+            //Increment counter if test iris diagnosed properly
+            if(isDiagnosedProperly(irisTest, kNearestNeighbours, k)) {
                 COUNTER_OF_PROPER_DIAGNOSED_IRISES++;
             }
         }
-        System.out.println(COUNTER_OF_PROPER_DIAGNOSED_IRISES + "/" + k);
-        System.out.println(((double) COUNTER_OF_PROPER_DIAGNOSED_IRISES / (double)irisTestList.size())*100 + "%");
+
+        //Summary
+        System.out.println(COUNTER_OF_PROPER_DIAGNOSED_IRISES + "/" + irisTestList.size());
+        System.out.println(((double) COUNTER_OF_PROPER_DIAGNOSED_IRISES / (double)irisTestList.size()) * 100 + "%");
+
+        //Reset counter
+        COUNTER_OF_PROPER_DIAGNOSED_IRISES = 0;
     }
 
-    private static boolean isDiagnosedProperly(Iris irisTest, List<?> kNearestNeighboursList, int k) {
+    public static void classifyCustomConditionalAttributes(List<Iris> irisTrainingList, int k) {
+        Map<Iris, Double> distancesToTrainingIrises = new HashMap<>();
+        int dimension = irisTrainingList.get(0).getConditionalAttributes().size(); //to know how many number user have to input
+        List<Double> conditionalAttributes = new ArrayList<>();
+        Scanner conditionalScanner = new Scanner(System.in);
 
-        long counter = kNearestNeighboursList.stream().filter(nn -> nn.toString().contains(irisTest.getDecisionAttribute())).count();
+        System.out.println("Type " + dimension + " conditional attributes (e.g. 3,54)");
+        for (int i = 0; i < dimension; i++) {
+            conditionalAttributes.add(conditionalScanner.nextDouble());
+        }
+
+        for(Iris irisTraining : irisTrainingList) { //check distance to every training Iris
+            distancesToTrainingIrises.put(irisTraining, getEuclideanDistance(new Iris(conditionalAttributes, null), irisTraining));
+        }
+
+        //Sort map of distances by value (ascending) and get List of first k elements (== the smallest distances)
+        List<Map.Entry<Iris, Double>> kNearestNeighbours = entriesSortedByValues(distancesToTrainingIrises).stream()
+                .limit(k)
+                .collect(Collectors.toList());
+
+        Map<String, Integer> counterMap = getEmptyIrisCounterMap();
+        System.out.println("Your conditional attributes: " + conditionalAttributes);
+        System.out.println(k + "NN:");
+        for (int i = 0; i < kNearestNeighbours.size(); i++) {
+            String decisionAttribute = kNearestNeighbours.get(i).getKey().getDecisionAttribute();
+            System.out.println(decisionAttribute);
+            counterMap.put(decisionAttribute, counterMap.get(decisionAttribute) + 1);
+        }
+
+        //Find key with max value
+        System.out.print("Decision: ");
+        System.out.println(Collections.max(counterMap.entrySet(), Map.Entry.comparingByValue()).getKey());
+
+    }
+
+    private static Map<String, Integer> getEmptyIrisCounterMap() {
+        Map<String, Integer> map = new HashMap<>();
+        map.put("Iris-setosa", 0);
+        map.put("Iris-versicolor", 0);
+        map.put("Iris-virginica", 0);
+        return map;
+    }
+
+    private static boolean isDiagnosedProperly(Iris irisTest, List<Map.Entry<Iris, Double>> kNearestNeighboursList, int k) {
+
+        long counter = kNearestNeighboursList.stream()
+                .filter(nn -> nn.toString().contains(irisTest.getDecisionAttribute()))
+                .count();
         printPrettyInfo(irisTest, kNearestNeighboursList, counter, k);
 
         if(((double) counter / (double) k) > 0.5) {
@@ -35,10 +88,10 @@ public class Classifier {
         }
     }
 
-    private static void printPrettyInfo(Iris irisTest, List<?> kNearestNeigbours, long counter, int k) {
+    private static void printPrettyInfo(Iris irisTest, List<Map.Entry<Iris, Double>> kNearestNeighbours, long counter, int k) {
         System.out.println("K nearest neighbours for: " + irisTest.getDecisionAttribute() + ", " + irisTest.getConditionalAttributes());
-        for (int i = 0; i < kNearestNeigbours.size(); i++) {
-            System.out.println(kNearestNeigbours.get(i));
+        for (int i = 0; i < kNearestNeighbours.size(); i++) {
+            System.out.println(kNearestNeighbours.get(i).getKey().getDecisionAttribute() + " - " + kNearestNeighbours.get(i).getValue());
         }
         System.out.println(String.valueOf(counter) + "/" + String.valueOf(k) + "\n");
     }
@@ -69,17 +122,5 @@ public class Classifier {
         );
         sortedEntries.addAll(map.entrySet());
         return sortedEntries;
-    }
-
-    private static void printCollections(List<Iris> irisTrainingList, List<Iris> irisTestList) {
-        System.out.println("TRAINING COLLECTION");
-        for(Iris iris : irisTrainingList) {
-            System.out.println(iris.toString());
-        }
-
-        System.out.println("\nTEST COLLECTION");
-        for(Iris iris : irisTestList) {
-            System.out.println(iris.toString());
-        }
     }
 }
